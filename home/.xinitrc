@@ -11,16 +11,16 @@ if command -v synclient &> /dev/null; then
 fi
 
 if command -v unclutter &> /dev/null; then
-  unclutter &
+  unclutter --timeout 3 --start-hidden &
 fi
 
 if command -v slstatus &> /dev/null; then
   slstatus &
-#else
-#  while xsetroot -name "`date +"%F %R"` `uptime | sed 's/.*,//'`"
-#  do
-#    sleep 1
-#  done &
+else
+  while xsetroot -name "`date +"%F %R"` `uptime | sed 's/.*,//'`"
+  do
+    sleep 1
+  done &
 fi
 
 # Setting up the user's D-Bus Daemon

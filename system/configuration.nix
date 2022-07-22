@@ -25,6 +25,16 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  fileSystems."/mnt/Backup" = {
+    device = "//192.168.41.4/Backup";
+    fsType = "cifs";
+    options = let
+      # this line prevents hanging on network split
+      automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
+
+    in ["${automount_opts},credentials=/etc/nixos/smb-secrets"];
+  };
+
   # Set your time zone.
   time.timeZone = "Europe/Stockholm";
 
@@ -46,10 +56,6 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Enable the XFCE Desktop Environment.
-  #services.xserver.displayManager.lightdm.enable = true;
-  #services.xserver.desktopManager.xfce.enable = true;
-
   # Setting up Xorg system-wide but without a Display Manager
   services.xserver.displayManager.startx.enable = true;
 
@@ -59,38 +65,16 @@
     (self: super: {
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
         patches = [
-          # fibonacci
-#          (super.fetchpatch {
-#            url = "https://dwm.suckless.org/patches/fibonacci/dwm-fibonacci-20200418-c82db69.diff";
-#            sha256 = "12y4kknly5irwd6yhqj1zfr3h06hixi2p7ybjymhhhy0ixr7c49d";
-#          })
           # focusonclick
-          (super.fetchpatch {
-            url = "https://dwm.suckless.org/patches/focusonclick/dwm-focusonclick-20200110-61bb8b2.diff";
-            sha256 = "1fi3xsk790cdl037ysr8vyrnqb7d0a0zqmvslh0jcambmh88d98b";
-          })
+          ./dwm/dwm-focusonclick-20200110-61bb8b2.diff
           # hide_vacant_tags
-          (super.fetchpatch {
-            url = "https://dwm.suckless.org/patches/hide_vacant_tags/dwm-hide_vacant_tags-6.3.diff";
-            sha256 = "0c8cf5lm95bbxcirf9hhzkwmc5a690albnxcrg363av32rf2yaa1";
-          })
+          ./dwm/dwm-hide_vacant_tags-6.3.diff
           # gridmode
-          (super.fetchpatch {
-            url = "https://dwm.suckless.org/patches/gridmode/dwm-gridmode-20170909-ceac8c9.diff";
-            sha256 = "180kdpj6ci5r7hxmv2k5hjp3miykdjaxiyazp4i3l8v8rjzl48w3";
-          })
-          # three-column
-#          (super.fetchpatch {
-#            url = "https://dwm.suckless.org/patches/three-column/tcl.c";
-#            sha256 = "1v2d4cd942xl3fcv8jll0lmi7vq1fhk75dgv711ia6543161hbzr";
-#          })
+          ./dwm/dwm-gridmode-20170909-ceac8c9.diff
           # useless gap
-          (super.fetchpatch {
-            url = "https://dwm.suckless.org/patches/uselessgap/dwm-uselessgap-20211119-58414bee958f2.diff";
-            sha256 = "0xpmxw11ppdhrcr2yp0nsvfnsl4hivxkdmk7l5ygwf0zmrspmjw0";
-          })
+          ./dwm/dwm-uselessgap-20211119-58414bee958f2.diff
         ];
-        configFile = super.writeText "config.h" (builtins.readFile ./dwm-config.h);
+        configFile = super.writeText "config.h" (builtins.readFile ./dwm/dwm-config.h);
         postPatch = oldAttrs.postPatch or "" + "\necho 'Using own config file...'\n cp ${configFile} config.def.h";
       });
     })
@@ -104,9 +88,6 @@
 
   # Configure console keymap
   console.keyMap = "sv-latin1";
-
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
 
   # Enable sound with pipewire.
   sound.enable = true;
@@ -124,19 +105,17 @@
     # no need to redefine it in your config for now)
     #media-session.enable = true;
   };
+  sound.mediaKeys.enable = true;
 
   # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.peglah = {
     isNormalUser = true;
     description = "Martin";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-      firefox
-    #  thunderbird
-    ];
+    packages = with pkgs; [];
   };
 
   # Allow unfree packages
@@ -145,72 +124,63 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+  #  wget
+  #dmenu
   (dmenu.overrideAttrs (oldAttrs: rec {
     patches = [
       # border
-      (fetchpatch {
-        url = "https://tools.suckless.org/dmenu/patches/border/dmenu-border-20201112-1a13d04.diff";
-        sha256 = "1ghckggwgasw9p87x900gk9v3682d6is74q2rd0vcpsmrvpiv606";
-      })
+      ./dmenu/dmenu-border-20201112-1a13d04.diff
       # center
-      (fetchpatch {
-        url = "https://tools.suckless.org/dmenu/patches/center/dmenu-center-20200111-8cd37e1.diff";
-        sha256 = "0x7jc1m0138p7vfa955jmfhhyc317y0wbl8cxasr6cfpq8nq1qsg";
-      })
+      ./dmenu/dmenu-center-20200111-8cd37e1.diff
       # grid
-      (fetchpatch {
-        url = "https://tools.suckless.org/dmenu/patches/grid/dmenu-grid-4.9.diff";
-        sha256 = "1d537263rl685z7107p1i9c4lr832b3axg59sym9la3h3n68h3fp";
-      })
-      # gruvbox
-      (fetchpatch {
-        url = "https://tools.suckless.org/dmenu/patches/gruvbox/dmenu-gruvbox-20210329-9ae8ea5.diff";
-        sha256 = "1fblgsxh86rgbl25n1qbkz5gfndvkv20hyzfiy068n5hih2mvmp6";
-      })
+      ./dmenu/dmenu-grid-4.9.diff
     ];
+    configFile = writeText "config.def.h" (builtins.readFile ./dmenu/dmenu-config.h);
+    postPatch = "${oldAttrs.postPatch}\n cp ${configFile} config.def.h";
   }))
 
+#  st
   (st.overrideAttrs (oldAttrs: rec {
-    patches = [
-      # anysize
-      (fetchpatch {
-        url = "https://st.suckless.org/patches/anysize/st-anysize-0.8.4.diff";
-        sha256 = "1w3fjj6i0f8bii5c6gszl5lji3hq8fkqrcpxgxkcd33qks8zfl9q";
-      })
-      # csi_22_23
-      (fetchpatch {
-        url = "https://st.suckless.org/patches/csi_22_23/st-csi_22_23-0.8.5.diff";
-        sha256 = "0w0zfymq5xy0b6cb8dnqvlzfax43l5dfdy806v40ganwfxwbxh09";
-      })
-      # gruvbox
-      (fetchpatch {
-        url = "https://st.suckless.org/patches/gruvbox/st-gruvbox-dark-0.8.5.diff";
-        sha256 = "0jvn0i0fl0w3c8dcmwyh9w19g3hsi22cqmyqly5zjzjwjhc8qnjv";
-      })
-    ];
-  }))
+   patches = [
+     # anysize
+     ./st/st-anysize-0.8.4.diff
+     # csi_22_23
+     ./st/st-csi_22_23-0.8.5.diff
+     # gruvbox
+     ./st/st-gruvbox-dark-0.8.5.diff
+   ];
+    configFile = writeText "config.def.h" (builtins.readFile ./st/st-config.h);
+    postPatch = "${oldAttrs.postPatch}\n cp ${configFile} config.def.h";
+ }))
 
-#  slstatus
+  #slstatus
   (slstatus.overrideAttrs (oldAttrs: rec {
-    configFile = writeText "config.h" (builtins.readFile ./slstatus-config.h);
+    configFile = writeText "config.def.h" (builtins.readFile ./slstatus/slstatus-config.h);
     preBuild = "${oldAttrs.preBuild}\n cp ${configFile} config.def.h";
   }))
 
-  neovim
-  git
-  feh
-  mosh
   afetch
-  ranger
-  mplayer
-  btop
   bat
-  highlight
-  ffmpegthumbnailer
+  btop
   dos2unix
+  feh
+  ffmpegthumbnailer
+  firefox
   gcc
-  unzip
+  git
+  highlight
+  mosh
+  mplayer
+  neovim
+  qutebrowser
+  ranger
+  streamlink
   sumneko-lua-language-server
+  tdesktop
+  ueberzug
+  unclutter-xfixes
+  unzip
   ];
 
   fonts.fonts = with pkgs; [
