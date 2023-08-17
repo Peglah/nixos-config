@@ -4,16 +4,11 @@
 
 { config, pkgs, ... }:
 
-let
-  home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/release-23.05.tar.gz";
-in
-
 {
   imports = [ 
     # Include the results of the hardware scan.
     #<nixos-hardware/lenovo/thinkpad/t420>
     ./hardware-configuration.nix
-    (import "${home-manager}/nixos")
   ];
 
   # Use the systemd-boot EFI boot loader.
@@ -99,28 +94,12 @@ in
     ];
   };
 
-  home-manager.users.peglah = {
-    /* The home.stateVersion option does not have a default and must be set */
-    home.stateVersion = "23.05";
-
-    /* Here goes the rest of your home-manager config, e.g. home.packages = [ pkgs.foo ]; */
-    programs = {
-      bash = {
-        enable = true;
-        shellAliases = {
-          cat = "bat";
-          cls = "clear && afetch";
-          diff = "diff --color=auto";
-          grep = "grep --color=auto";
-          ip = "ip -color=auto";
-          ls = "exa --icons --group-directories-first";
-          #v = "fd --type f --hidden --exclude .git --color=always | fzf-tmux -p 80%,50% --ansi | nvim";
-          vim = "nvim";
-          wt = "wtwitch";
-        };
-      };
-    };
-    #programs.bash.initExtra = 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix = {
+    package = pkgs.nixFlakes;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
   };
 
   nixpkgs.config.allowUnfree = true;
@@ -152,18 +131,15 @@ in
     mpd
     mpv
     ncmpcpp
-    neovim
     nodejs
     ranger
     ripgrep
     rofi-wayland
     streamlink
     tldr
-    tmux
     unzip
     w3m
     waybar
-    wezterm
     wtwitch
   ];
 

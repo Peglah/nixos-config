@@ -1,0 +1,39 @@
+return {
+  'Shatur/neovim-ayu',
+  event = "User ColorSchemeLoad",
+
+  'catppuccin/nvim',
+  name = 'catppuccin',
+  event = "User ColorSchemeLoad",
+
+  'NTBBloodbath/doom-one.nvim',
+  event = "User ColorSchemeLoad",
+
+  'Mofiqul/dracula.nvim',
+  event = "User ColorSchemeLoad",
+
+  'neanias/everforest-nvim',
+  event = "User ColorSchemeLoad",
+
+  'rebelot/kanagawa.nvim',
+  event = "User ColorSchemeLoad",
+
+  'arturgoms/moonbow.nvim',
+  event = "User ColorSchemeLoad",
+
+  'EdenEast/nightfox.nvim',
+  event = "User ColorSchemeLoad",
+
+  'shaunsingh/nord.nvim',
+  event = "User ColorSchemeLoad",
+
+  'navarasu/onedark.nvim',
+  event = "User ColorSchemeLoad",
+
+  'rose-pine/neovim',
+  name = 'rose-pine',
+  event = "User ColorSchemeLoad",
+
+  'folke/tokyonight.nvim',
+  event = "User ColorSchemeLoad",
+}
